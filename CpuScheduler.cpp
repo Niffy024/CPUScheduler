@@ -5,6 +5,7 @@ using namespace std;
 
 
 struct Process {
+   
     int burstTime;
     int arrivalTime;
     int priority;
@@ -28,29 +29,38 @@ void addProcess(Process*& head, Process*& tail, int burstTime, int arrivalTime, 
     }
 }
 
-//use this printProcesses function to calculate and get each cpu scheduling method
-void printProcesses(const Process* head) {
-    const Process* current = head;
+//use this  function to calculate and get each cpu scheduling method
+void firstcomefirstserve( Process* head) {
+     Process* current = head;
+       int currentTime = 0;
+        float totalWaitingTime = 0;
+         int processCount = 0;
         int count=1;
         ofstream outFile("out.txt");
-       
+       cout<<"scheduling Method: First come First Serve"<<endl;
+       cout<<"Process Waiting times:"<<endl;
+
+        outFile<<"scheduling Method: First come First Serve"<<endl;
+       outFile<<"Process Waiting times:"<<endl;
     while (current != nullptr) {
-               
-                
-        
-     
-        cout << "P"<< count<< ":"<<"Burst Time: " << current->burstTime << ", Arrival Time: " << current->arrivalTime
-             << ", Priority: " << current->priority << endl; 
-            
-        //current = current->next;
-        outFile<<"P"<< count<< ":"<<"Burst Time: " << current->burstTime << ", Arrival Time: " << current->arrivalTime
-             << ", Priority: " << current->priority << endl; 
-            
+        // Calculate waiting time
+       current->waitingTime = currentTime - current->arrivalTime;  
+        currentTime += current->burstTime;
+        cout << "Process " << count << ":" << current->waitingTime<<"ms"<< endl;
+        outFile << "Process " << count << ":" << current->waitingTime<<"ms"<< endl; 
+            count++;
+//calculate average waiting time
+        totalWaitingTime += current->waitingTime;
+        processCount++;
         current = current->next;
-         count++;
+        
           
     }
-   
+
+    cout<<"Average Waiting Time:"<<totalWaitingTime / processCount;
+    cout<<"ms"<<endl;
+    outFile<<"Average Waiting Time:"<<totalWaitingTime / processCount;
+    outFile<<"ms"<<endl;
      outFile.close();
 }
 
@@ -112,10 +122,14 @@ int main()
         cout << "Choose your Sub Option" << endl;
         cin >> subOption1;
         if(subOption1==1){
-             cout << "Assigned values: " << endl;
-    printProcesses(head);
+            //if user choose none as their option, automactically use first come first serve!!!!
+            firstcomefirstserve(head);
         }
-       //add  printProcesses(head); functions for each scenerio here
+        else if(subOption1==2){
+             
+            firstcomefirstserve(head);
+        }
+       
 
         break;
         // Preemptive Method
