@@ -63,6 +63,67 @@ void firstcomefirstserve( Process* head) {
     outFile<<"ms"<<endl;
      outFile.close();
 }
+// shortest jobfirst(Non Preemptive)
+void shortestJobFirstNonPreemptive(Process* head) {
+    Process* current = head;
+    int currentTime = 0;
+    float totalWaitingTime = 0;
+    int processCount = 0;
+    int count = 1;
+    ofstream outFile("out.txt");
+    cout << "Scheduling Method: Shortest Job First (Non Preemptive)" << endl;
+    cout << "Process Waiting times:" << endl;
+
+    outFile << "Scheduling Method: Shortest Job First (Non Preemptive)" << endl;
+    outFile << "Process Waiting times:" << endl;
+
+    // Sort processes based on burst time (assuming processes are sorted by arrival time)
+    while (current != nullptr) {
+        Process* shortest = current;
+        Process* prev = nullptr;
+        Process* temp = current->next;
+
+        // Find the process with the shortest burst time
+        while (temp != nullptr && temp->arrivalTime <= currentTime) {
+            if (temp->burstTime < shortest->burstTime) {
+                shortest = temp;
+                prev = current;
+            }
+            temp = temp->next;
+        }
+
+        if (shortest != current) {
+            if (prev != nullptr) {
+                prev->next = shortest->next;
+            } else {
+                head = shortest->next;
+            }
+
+            // Execute the shortest process
+            shortest->waitingTime = currentTime - shortest->arrivalTime;
+            currentTime += shortest->burstTime;
+
+            cout << "Process " << count << ": " << shortest->waitingTime << "ms" << endl;
+            outFile << "Process " << count << ": " << shortest->waitingTime << "ms" << endl;
+
+            totalWaitingTime += shortest->waitingTime;
+            processCount++;
+            count++;
+
+            delete shortest;
+        } else {
+            currentTime++;
+        }
+
+        current = head;  // Reset current to the beginning of the list
+    }
+
+    cout << "Average Waiting Time: " << totalWaitingTime / processCount << "ms" << endl;
+    outFile << "Average Waiting Time: " << totalWaitingTime / processCount << "ms" << endl;
+
+    outFile.close();
+}
+
 
 
 int main()
@@ -128,6 +189,11 @@ int main()
         else if(subOption1==2){
              
             firstcomefirstserve(head);
+        } 
+        else if(subOption1==3){
+
+                 shortestJobFirstNonPreemptive(head);
+
         }
        
 
