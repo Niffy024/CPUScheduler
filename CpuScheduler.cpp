@@ -64,6 +64,22 @@ void firstcomefirstserve( Process* head) {
      outFile.close();
 }
 // shortest jobfirst(Non Preemptive)
+// Function to find the process with the shortest burst time
+Process* findShortest(Process* start, int currentTime) {
+    Process* shortest = nullptr;
+    Process* current = start;
+
+    while (current != nullptr && current->arrivalTime <= currentTime) {
+        if (shortest == nullptr || current->burstTime < shortest->burstTime) {
+            shortest = current;
+        }
+        current = current->next;
+    }
+
+    return shortest;
+}
+
+// Shortest Job First (Non Preemptive)
 void shortestJobFirstNonPreemptive(Process* head) {
     Process* current = head;
     int currentTime = 0;
@@ -77,28 +93,11 @@ void shortestJobFirstNonPreemptive(Process* head) {
     outFile << "Scheduling Method: Shortest Job First (Non Preemptive)" << endl;
     outFile << "Process Waiting times:" << endl;
 
-    // Sort processes based on burst time (assuming processes are sorted by arrival time)
     while (current != nullptr) {
-        Process* shortest = current;
-        Process* prev = nullptr;
-        Process* temp = current->next;
-
         // Find the process with the shortest burst time
-        while (temp != nullptr && temp->arrivalTime <= currentTime) {
-            if (temp->burstTime < shortest->burstTime) {
-                shortest = temp;
-                prev = current;
-            }
-            temp = temp->next;
-        }
+        Process* shortest = findShortest(current, currentTime);
 
-        if (shortest != current) {
-            if (prev != nullptr) {
-                prev->next = shortest->next;
-            } else {
-                head = shortest->next;
-            }
-
+        if (shortest != nullptr) {
             // Execute the shortest process
             shortest->waitingTime = currentTime - shortest->arrivalTime;
             currentTime += shortest->burstTime;
@@ -110,12 +109,24 @@ void shortestJobFirstNonPreemptive(Process* head) {
             processCount++;
             count++;
 
+            // Remove the executed process from the list
+        // Remove the executed process from the list
+if (current == shortest) {
+    current = current->next;
+    head = current;
+} else {
+    Process* temp = current;
+    while (temp->next != shortest) {
+        temp = temp->next;
+    }
+    temp->next = shortest->next;
+}
+
+
             delete shortest;
         } else {
             currentTime++;
         }
-
-        current = head;  // Reset current to the beginning of the list
     }
 
     cout << "Average Waiting Time: " << totalWaitingTime / processCount << "ms" << endl;
@@ -123,6 +134,8 @@ void shortestJobFirstNonPreemptive(Process* head) {
 
     outFile.close();
 }
+
+
 
 
 
