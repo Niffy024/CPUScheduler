@@ -195,7 +195,88 @@ void prioritySchedulingNonPreemptive(Process* head) {
 
     outFile.close();
 }
+// Dequeue a process from the front of the queue
+Process* dequeue(Process*& front, Process*& rear) {
+    if (front == nullptr) {
+        return nullptr;
+    }
 
+    Process* temp = front;
+    front = front->next;
+
+    if (front == nullptr) {
+        rear = nullptr;
+    }
+
+    return temp;
+}
+
+// Round Robin Scheduling
+void roundRobinScheduling(Process* head, int quantum) {
+    Process* front = nullptr;
+    Process* rear = nullptr;
+    Process* current = head;
+    int currentTime = 0;
+    float totalWaitingTime = 0;
+    int processCount = 0;
+    int count = 1;
+    ofstream outFile("out.txt");
+
+    cout << "Scheduling Method: Round Robin" << endl;
+    cout << "Quantum: " << quantum  << endl;
+    cout << "Process Waiting times:" << endl;
+
+    outFile << "Scheduling Method: Round Robin" << endl;
+    outFile << "Quantum: " << quantum  << endl;
+    outFile << "Process Waiting times:" << endl;
+
+    while (current != nullptr || front != nullptr) {
+        // Enqueue processes that have arrived
+        while (current != nullptr && current->arrivalTime <= currentTime) {
+            addProcess(front, rear, current->burstTime, current->arrivalTime, current->priority);
+            current = current->next;
+        }
+
+        // Dequeue and execute processes
+        if (front != nullptr) {
+            Process* currentProcess = dequeue(front, rear);
+
+            int remainingTime = min(quantum, currentProcess->burstTime);
+            currentProcess->burstTime -= remainingTime;
+
+            // Calculate waiting time
+            currentProcess->waitingTime = currentTime - currentProcess->arrivalTime;
+            currentTime += remainingTime;
+
+            // Enqueue back if burst time is remaining
+            if (currentProcess->burstTime > 0) {
+                addProcess(front, rear, currentProcess->burstTime, currentProcess->arrivalTime, currentProcess->priority);
+            } else {
+                // Process is completed
+                cout << "Process " << count << ": " << currentProcess->waitingTime << "ms" << endl;
+                outFile << "Process " << count << ": " << currentProcess->waitingTime << "ms" << endl;
+
+                totalWaitingTime += currentProcess->waitingTime;
+                processCount++;
+                count++;
+            }
+
+            delete currentProcess;
+        } else {
+            currentTime++;
+        }
+    }
+
+    if (processCount > 0) {
+        cout << "Average Waiting Time: " << totalWaitingTime / processCount << "ms" << endl;
+        outFile << "Average Waiting Time: " << totalWaitingTime / processCount << "ms" << endl;
+    } else {
+        cout << "No processes executed." << endl;
+        outFile << "No processes executed." << endl;
+    }
+
+    outFile.close();
+}
 
 
 
@@ -271,6 +352,12 @@ int main()
         }
         else if(subOption1==4){
             prioritySchedulingNonPreemptive(head);
+        }
+        else if (subOption1==5){
+            int quantum;
+                cout << "Enter Quantum: ";
+                cin >> quantum;
+                roundRobinScheduling(head, quantum);
         }
        
 
