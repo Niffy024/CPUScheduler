@@ -148,58 +148,46 @@ void prioritySchedulingNonPreemptive(Process* head) {
     outFile << "Scheduling Method: Priority Scheduling (Non Preemptive)" << endl;
     outFile << "Process Waiting times:" << endl;
 
-    // Sort processes based on priority in non-ascending order (assuming processes are sorted by arrival time)
-    Process* processes = nullptr;
-    Process* processesTail = nullptr;
-
     while (current != nullptr) {
-        Process* newProcess = new Process;
-        newProcess->burstTime = current->burstTime;
-        newProcess->arrivalTime = current->arrivalTime;
-        newProcess->priority = current->priority;
-        newProcess->next = nullptr;
+        // Find the process with the highest priority
+        Process* highestPriority = nullptr;
+        Process* temp = current;
 
-        if (processes == nullptr) {
-            processes = processesTail = newProcess;
-        } else {
-            Process* temp = processes;
-            Process* prev = nullptr;
-
-            // Find the correct position to insert based on priority in non-ascending order
-            while (temp != nullptr && temp->priority >= current->priority) {
-                prev = temp;
-                temp = temp->next;
+        while (temp != nullptr && temp->arrivalTime <= currentTime) {
+            if (highestPriority == nullptr || temp->priority < highestPriority->priority) {
+                highestPriority = temp;
             }
-
-            if (prev == nullptr) {
-                newProcess->next = processes;
-                processes = newProcess;
-            } else {
-                prev->next = newProcess;
-                newProcess->next = temp;
-            }
+            temp = temp->next;
         }
 
-        current = current->next;
-    }
+        if (highestPriority != nullptr) {
+            // Execute the process with the highest priority
+            highestPriority->waitingTime = currentTime - highestPriority->arrivalTime;
+            currentTime += highestPriority->burstTime;
 
-    current = processes;
+            cout << "Process " << count << ": " << highestPriority->waitingTime << "ms" << endl;
+            outFile << "Process " << count << ": " << highestPriority->waitingTime << "ms" << endl;
 
-    while (current != nullptr) {
-        // Execute the process
-        current->waitingTime = currentTime - current->arrivalTime;
-        currentTime += current->burstTime;
+            totalWaitingTime += highestPriority->waitingTime;
+            processCount++;
+            count++;
 
-        cout << "Process " << count << ": " << current->waitingTime << "ms" << endl;
-        outFile << "Process " << count << ": " << current->waitingTime << "ms" << endl;
+            // Remove the executed process from the list
+            if (current == highestPriority) {
+                current = current->next;
+                head = current;
+            } else {
+                Process* temp = current;
+                while (temp->next != highestPriority) {
+                    temp = temp->next;
+                }
+                temp->next = highestPriority->next;
+            }
 
-        totalWaitingTime += current->waitingTime;
-        processCount++;
-        count++;
-
-        Process* temp = current;
-        current = current->next;
-        delete temp;
+            delete highestPriority;
+        } else {
+            currentTime++;
+        }
     }
 
     cout << "Average Waiting Time: " << totalWaitingTime / processCount << "ms" << endl;
@@ -207,7 +195,6 @@ void prioritySchedulingNonPreemptive(Process* head) {
 
     outFile.close();
 }
-
 
 
 
