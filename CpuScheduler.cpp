@@ -281,6 +281,16 @@ void roundRobinScheduling(Process* head, int quantum) {
 
 
 
+
+// Function to display results
+void showResults() {
+    // Implement the logic to display the results here
+    // You can read the "out.txt" file and print the results
+    // This function should display the results based on the user's selection
+}
+
+
+
 int main()
 {
 
@@ -370,7 +380,14 @@ int main()
         cout << "--------------------2. Priority Scheduling(Preemptive)----------------------" << endl;
         cout << "Choose your Sub Option" << endl;
         cin >> subOption2;
+        if(subOption2==1){
+           // shortestJobFirstPreemptive(head);
+        }
+        else if(subOption2==2){
+           // prioritySchedulingPreemptive(head);
+        }
         break;
+
         // Show Result
     case 3:
         break;
