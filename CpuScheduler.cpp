@@ -32,7 +32,7 @@ void addProcess(Process*& head, Process*& tail, int burstTime, int arrivalTime, 
     }
 }
 
-//use this  function to calculate and get each cpu scheduling method
+//first come first serve method
 void firstcomefirstserve( Process* head) {
      Process* current = head;
        int currentTime = 0;
@@ -46,13 +46,13 @@ void firstcomefirstserve( Process* head) {
         outFile<<"scheduling Method: First come First Serve"<<endl;
        outFile<<"Process Waiting times:"<<endl;
     while (current != nullptr) {
-        // Calculate waiting time
+        //  waiting time
        current->waitingTime = currentTime - current->arrivalTime;  
         currentTime += current->burstTime;
         cout << "Process " << count << ":" << current->waitingTime<<"ms"<< endl;
         outFile << "Process " << count << ":" << current->waitingTime<<"ms"<< endl; 
             count++;
-//calculate average waiting time
+// average waiting time
         totalWaitingTime += current->waitingTime;
         processCount++;
         current = current->next;
@@ -479,7 +479,7 @@ int main()
     Process* head = nullptr;
     Process* tail = nullptr;
     string line;
-
+//get the burstTime, arrivalTime and Priority from the input file
     while (getline(inputFile, line)) {
         stringstream ss(line);
         int burstTime, arrivalTime, priority;
@@ -491,15 +491,6 @@ int main()
     }
 
     inputFile.close();
-     
-     
-    // Output the assigned values
-     
-     
-   
-
-
-
     cout << "Welcome User, this is CPU Scheduler Simulator.Make sure you already add your input file" << endl;
     cout << "1. Scheduling Method" << endl;
     cout << "2. Preemptive Mode" << endl;
