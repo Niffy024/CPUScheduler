@@ -73,7 +73,7 @@ Process* findShortest(Process* start, int currentTime) {
     Process* current = start;
 
     while (current != nullptr && current->arrivalTime <= currentTime) {
-        if (shortest == nullptr || current->burstTime < shortest->burstTime) {
+        if (shortest == nullptr || current->burstTime < shortest->burstTime ||current->burstTime == shortest->burstTime ) {
             shortest = current;
         }
         current = current->next;
@@ -136,14 +136,8 @@ void shortestJobFirstNonPreemptive(Process* head) {
             currentTime++;
         }
     }
-
-    if (processCount > 0) {
         cout << "Average Waiting Time: " << totalWaitingTime / processCount << "ms" << endl;
         outFile << "Average Waiting Time: " << totalWaitingTime / processCount << "ms" << endl;
-    } else {
-        cout << "No processes executed." << endl;
-        outFile << "No processes executed." << endl;
-    }
 
     outFile.close();
 }
