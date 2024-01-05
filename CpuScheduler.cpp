@@ -8,6 +8,7 @@ const int QUANTUM = 4;
 
 struct Process {
 
+    int processID;
     int burstTime;
     int arrivalTime;
     int priority;
@@ -19,6 +20,7 @@ Process* front = nullptr;
 Process* rear = nullptr;
 void addProcess(Process*& head, Process*& tail, int burstTime, int arrivalTime, int priority) {
     Process* newProcess = new Process;
+    newProcess->processID = (tail != nullptr) ? tail->processID + 1 : 1; // Increment process ID
     newProcess->burstTime = burstTime;
     newProcess->arrivalTime = arrivalTime;
     newProcess->priority = priority;
@@ -109,9 +111,8 @@ void shortestJobFirstNonPreemptive(Process*& head) {
         // Execute the shortest process
         shortest->waitingTime = currentTime - shortest->arrivalTime;
         currentTime += shortest->burstTime;
-
-        cout << "Process " << count << ": " << shortest->waitingTime << "ms" << endl;
-        outFile << "Process " << count << ": " << shortest->waitingTime << "ms" << endl;
+        cout << "Process " << shortest->processID << ": " << shortest->waitingTime << "ms" << endl;
+        outFile << "Process " << shortest->processID << ": " << shortest->waitingTime << "ms" << endl;
 
         totalWaitingTime += shortest->waitingTime;
         processCount++;
@@ -154,7 +155,7 @@ void prioritySchedulingNonPreemptive(Process* &head) {
     int currentTime = 0;
     float totalWaitingTime = 0;
     int processCount = 0;
-    int count = 1;
+    
     ofstream outFile("out.txt");
 
     cout << "Scheduling Method: Priority Scheduling (Non Preemptive)" << endl;
@@ -180,12 +181,12 @@ void prioritySchedulingNonPreemptive(Process* &head) {
             highestPriority->waitingTime = currentTime - highestPriority->arrivalTime;
             currentTime += highestPriority->burstTime;
 
-            cout << "Process " << count << ": " << highestPriority->waitingTime << "ms" << endl;
-            outFile << "Process " << count << ": " << highestPriority->waitingTime << "ms" << endl;
+            cout << "Process " << highestPriority->processID << ": " << highestPriority->waitingTime << "ms" << endl;
+            outFile << "Process " << highestPriority->processID << ": " << highestPriority->waitingTime << "ms" << endl;
 
             totalWaitingTime += highestPriority->waitingTime;
             processCount++;
-            count++;
+            
 
             // Remove the executed process from the list
             if (current == highestPriority) {
