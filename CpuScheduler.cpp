@@ -7,7 +7,7 @@ const int QUANTUM = 4;
 
 
 struct Process {
-     
+
     int burstTime;
     int arrivalTime;
     int priority;
@@ -66,14 +66,18 @@ void firstcomefirstserve( Process* head) {
     outFile<<"ms"<<endl;
      outFile.close();
 }
+
+
 // shortest jobfirst(Non Preemptive)
 // Function to find the process with the shortest burst time
 Process* findShortest(Process* start, int currentTime) {
     Process* shortest = nullptr;
     Process* current = start;
+    
 
     while (current != nullptr && current->arrivalTime <= currentTime) {
-        if (shortest == nullptr || current->burstTime < shortest->burstTime ||current->burstTime == shortest->burstTime ) {
+        if (shortest == nullptr || current->burstTime < shortest->burstTime 
+        || (current->burstTime == shortest->burstTime && current->arrivalTime<shortest->arrivalTime)) {
             shortest = current;
         }
         current = current->next;
@@ -83,7 +87,7 @@ Process* findShortest(Process* start, int currentTime) {
 }
 
 // Shortest Job First (Non Preemptive)
-void shortestJobFirstNonPreemptive(Process* head) {
+void shortestJobFirstNonPreemptive(Process*& head) {
     Process* current = head;
     int currentTime = 0;
     float totalWaitingTime = 0;
@@ -98,52 +102,54 @@ void shortestJobFirstNonPreemptive(Process* head) {
     outFile << "Process Waiting times:" << endl;
 
     while (current != nullptr) {
-        // Find the process with the shortest burst time
-        Process* shortest = findShortest(current, currentTime);
+    // Find the process with the shortest burst time
+    Process* shortest = findShortest(current, currentTime);
 
-        if (shortest != nullptr) {
-            // Execute the shortest process
-            shortest->waitingTime = currentTime - shortest->arrivalTime;
-            currentTime += shortest->burstTime;
+    if (shortest != nullptr) {
+        // Execute the shortest process
+        shortest->waitingTime = currentTime - shortest->arrivalTime;
+        currentTime += shortest->burstTime;
 
-            cout << "Process " << count << ": " << shortest->waitingTime << "ms" << endl;
-            outFile << "Process " << count << ": " << shortest->waitingTime << "ms" << endl;
+        cout << "Process " << count << ": " << shortest->waitingTime << "ms" << endl;
+        outFile << "Process " << count << ": " << shortest->waitingTime << "ms" << endl;
 
-            totalWaitingTime += shortest->waitingTime;
-            processCount++;
-            count++;
+        totalWaitingTime += shortest->waitingTime;
+        processCount++;
+        count++;
+       
 
-            // Remove the executed process from the list
-            if (current == shortest) {
-                current = current->next;
-                head = current;
-            } else {
-                Process* temp = current;
-                Process* prev = nullptr;
-
-                while (temp != nullptr && temp != shortest) {
-                    prev = temp;
-                    temp = temp->next;
-                }
-
-                if (temp != nullptr) {
-                    prev->next = temp->next;
-                }
-            }
-
-            delete shortest;
+        // Remove the executed process from the list
+        if (current == shortest) {
+            head = current->next;
         } else {
-            currentTime++;
+            Process* temp = head;
+            while (temp->next != shortest) {
+                temp = temp->next;
+            }
+            temp->next = shortest->next;
         }
+
+        delete shortest; 
+    } else {
+        currentTime++;
     }
+
+    // Update the current pointer to head
+        current = head;
+          
+}  
+
+    // Calculate and display average waiting time
+   
         cout << "Average Waiting Time: " << totalWaitingTime / processCount << "ms" << endl;
         outFile << "Average Waiting Time: " << totalWaitingTime / processCount << "ms" << endl;
-
     outFile.close();
 }
 
+
+
 // prioroty scheduling (non preemptive)
-void prioritySchedulingNonPreemptive(Process* head) {
+void prioritySchedulingNonPreemptive(Process* &head) {
     Process* current = head;
     int currentTime = 0;
     float totalWaitingTime = 0;
@@ -203,15 +209,9 @@ void prioritySchedulingNonPreemptive(Process* head) {
         } else {
             currentTime++;
         }
-    }
-
-    if (processCount > 0) {
+    } 
         cout << "Average Waiting Time: " << totalWaitingTime / processCount << "ms" << endl;
         outFile << "Average Waiting Time: " << totalWaitingTime / processCount << "ms" << endl;
-    } else {
-        cout << "No processes executed." << endl;
-        outFile << "No processes executed." << endl;
-    }
 
     outFile.close();
 }
@@ -516,7 +516,8 @@ int main()
         } 
         else if(subOption1==3){
 
-                 shortestJobFirstNonPreemptive(head);
+                shortestJobFirstNonPreemptive(head);
+               
 
         }
         else if(subOption1==4){
