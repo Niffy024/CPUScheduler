@@ -12,12 +12,14 @@ struct Process {
     int burstTime;
     int arrivalTime;
     int priority;
+    int completionTime;
+    int turnAroundTime;
     int waitingTime;
+    int initialBurstTime;
     float AvgWaitingTime;
     Process* next;
 };
-Process* front = nullptr;
-Process* rear = nullptr;
+
 void addProcess(Process*& head, Process*& tail, int burstTime, int arrivalTime, int priority) {
     Process* newProcess = new Process;
     newProcess->processID = (tail != nullptr) ? tail->processID + 1 : 1; // Increment process ID
@@ -247,20 +249,101 @@ void prioritySchedulingNonPreemptive(Process* &head) {
     outFile.close();
 }
 
-// Dequeue a process from the front of the queue
-Process* dequeue(Process*& front, Process*& rear) {
-    if (front == nullptr) {
+struct QueueNode {
+    Process* data;
+    QueueNode* next;
+};
+
+struct ProcessQueue {
+    QueueNode* front;
+    QueueNode* rear;
+};
+
+void initializeQueue(ProcessQueue& q) {
+    q.front = nullptr;
+    q.rear = nullptr;
+}
+
+void enqueue(ProcessQueue& q, Process* process) {
+    QueueNode* newNode = new QueueNode;
+    newNode->data = process;
+    newNode->next = nullptr;
+
+    if (q.front == nullptr) {
+        q.front = q.rear = newNode;
+    } else {
+        q.rear->next = newNode;
+        q.rear = newNode;
+    }
+}
+
+Process* dequeue(ProcessQueue& q) {
+    if (q.front == nullptr) {
         return nullptr;
     }
 
-    Process* temp = front;
-    front = front->next;
+    QueueNode* temp = q.front;
+    Process* processData = temp->data;
 
-    if (front == nullptr) {
-        rear = nullptr;
+    q.front = q.front->next;
+
+    if (q.front == nullptr) {
+        q.rear = nullptr;
     }
 
-    return temp;
+    delete temp;
+    return processData;
+}
+
+void printQueue(ProcessQueue& q) {
+    QueueNode* current = q.front;
+
+    while (current != nullptr) {
+        Process* currentProcess = current->data;
+        cout << "Process ID: " << currentProcess->processID << "\tBurst Time: " << currentProcess->burstTime
+             << "\tArrival Time: " << currentProcess->arrivalTime << "\tPriority: " << currentProcess->priority
+             << "\tInitial Burst Time: " << currentProcess->initialBurstTime
+             << "\tCompletion Time: " << currentProcess->completionTime
+             << "\tTurn-Around Time: " << currentProcess->turnAroundTime << endl;
+
+        current = current->next;
+    }
+    cout << endl;
+}
+
+ProcessQueue processQueue;
+int currentProcessID = 1;
+void addProcess1(int burstTime, int arrivalTime, int priority, int initialBurstTime, int completionTime, int turnAroundTime) {
+    Process* newProcess = new Process;
+    newProcess->processID =currentProcessID++;
+    newProcess->burstTime = burstTime;
+    newProcess->arrivalTime = arrivalTime;
+    newProcess->priority = priority;
+    newProcess->initialBurstTime = initialBurstTime;
+    newProcess->completionTime = completionTime;
+    newProcess->turnAroundTime = turnAroundTime;
+    newProcess->next = nullptr;
+
+    enqueue(processQueue, newProcess);
+}
+
+Process* dequeue() {
+    return dequeue(processQueue);
+}
+
+
+void addProcess2(int processID, int burstTime, int arrivalTime, int priority, int initialBurstTime, int completionTime, int turnAroundTime) {
+    Process* newProcess = new Process;
+    newProcess->processID = processID;  // Use the provided processID
+    newProcess->burstTime = burstTime;
+    newProcess->arrivalTime = arrivalTime;
+    newProcess->priority = priority;
+    newProcess->initialBurstTime = initialBurstTime;
+    newProcess->completionTime = completionTime; // Set later in the roundRobinScheduling function
+    newProcess->turnAroundTime = turnAroundTime; // Set later in the roundRobinScheduling function
+    newProcess->next = nullptr;
+
+    enqueue(processQueue, newProcess);
 }
 
 // Round Robin Scheduling
@@ -272,6 +355,7 @@ void roundRobinScheduling(Process* head) {
     int processCount = 0;
     int count = 1;
     int quantum=2;
+    
     ofstream outFile("out.txt");
 
     cout << "Scheduling Method: Round Robin" << endl;
@@ -282,42 +366,62 @@ void roundRobinScheduling(Process* head) {
     outFile << "Quantum: " << quantum  << endl;
     outFile << "Process Waiting times:" << endl;
 
-    while (current != nullptr || front != nullptr) {
+   
         // Enqueue processes that have arrived
         while (current != nullptr && current->arrivalTime <= currentTime) {
-            addProcess(front, rear, current->burstTime, current->arrivalTime, current->priority);
+            current->burstTime=current->initialBurstTime;
+           addProcess1(current->burstTime, current->arrivalTime, current->priority, current->initialBurstTime, current->completionTime, current->turnAroundTime);
+
             current = current->next;
+          
         }
+        // printQueue(processQueue);
+        
+         
 
+     // Dequeue and execute processes
         // Dequeue and execute processes
-        if (front != nullptr) {
-            Process* currentProcess = dequeue(front, rear);
+       while (current != nullptr || processQueue.front!= nullptr) {
+if (processQueue.front!= nullptr) {
+    Process* currentProcess = dequeue(processQueue);
+   // printQueue(processQueue);
+    int remainingTime = min(quantum, currentProcess->burstTime);
+     
 
-            int remainingTime = min(quantum, currentProcess->burstTime);
-            currentProcess->burstTime -= remainingTime;
+    // Calculate waiting time before execution
+    //currentProcess->waitingTime = currentTime - currentProcess->arrivalTime;
 
-            // Calculate waiting time
-            currentProcess->waitingTime = currentTime - currentProcess->arrivalTime;
-            currentTime += remainingTime;
+    // Enqueue back if burst time is remaining
+    if (currentProcess->burstTime > remainingTime) {
+        currentProcess->burstTime -= remainingTime;
+       addProcess2(currentProcess->processID,currentProcess->burstTime, currentProcess->arrivalTime, currentProcess->priority, currentProcess->initialBurstTime, currentProcess->completionTime, currentProcess->turnAroundTime);
 
-            // Enqueue back if burst time is remaining
-            if (currentProcess->burstTime > 0) {
-                addProcess(front, rear, currentProcess->burstTime, currentProcess->arrivalTime, currentProcess->priority);
-            } else {
-                // Process is completed
-                cout << "Process " << count << ": " << currentProcess->waitingTime << "ms" << endl;
-                outFile << "Process " << count << ": " << currentProcess->waitingTime << "ms" << endl;
+   //printQueue(processQueue);
 
-                totalWaitingTime += currentProcess->waitingTime;
-                processCount++;
-                count++;
-            }
 
-            delete currentProcess;
-        } else {
-            currentTime++;
-        }
+    } else {
+              currentProcess->completionTime= currentTime + remainingTime;
+              currentProcess->turnAroundTime=currentProcess->completionTime-currentProcess->arrivalTime;
+             currentProcess->waitingTime=currentProcess->turnAroundTime- currentProcess->initialBurstTime;
+        // Process is completed
+       // cout<<"current time before completion:"<<currentTime;
+        cout << "Process " << currentProcess->processID << ": " << currentProcess->waitingTime << "ms" << endl;
+        outFile << "Process " << currentProcess->processID << ": " << currentProcess->waitingTime << "ms" << endl;
+
+        totalWaitingTime += currentProcess->waitingTime;
+        processCount++;
+        count++;
     }
+
+    currentTime += remainingTime;
+   // cout<<"curremt time after the funct:"<<currentTime<<endl;
+    
+    delete currentProcess;
+} else {
+    currentTime++;
+}
+}
+
 
     if (processCount > 0) {
         cout << "Average Waiting Time: " << totalWaitingTime / processCount << "ms" << endl;
@@ -329,6 +433,7 @@ void roundRobinScheduling(Process* head) {
 
     outFile.close();
 }
+
 
 // ... (existing code)
 
@@ -495,7 +600,7 @@ int main()
 {
 
 
-
+/*
      ifstream inputFile("input.txt");
     if (inputFile.fail()) {
         cerr << "Error: Unable to open input file." << endl;
@@ -512,11 +617,14 @@ int main()
         char colon;
 
         ss >> burstTime >> colon >> arrivalTime >> colon >> priority;
+         int initialBurstTime = burstTime;
+
+        addProcess1( burstTime, arrivalTime, priority,initialBurstTime,0,0);
 
         addProcess(head, tail, burstTime, arrivalTime, priority);
     }
 
-    inputFile.close();
+    inputFile.close();*/
     cout << "Welcome User, this is CPU Scheduler Simulator.Make sure you already add your input file" << endl;
     cout << "1. Scheduling Method" << endl;
     cout << "2. Preemptive Mode" << endl;
@@ -538,21 +646,143 @@ int main()
         cout << "Choose your Sub Option" << endl;
         cin >> subOption1;
         if(subOption1==1){
+
             //if user choose none as their option, automactically use first come first serve!!!!
-            firstcomefirstserve(head);
+
+
+            fstream inputFile("input.txt");
+    if (inputFile.fail()) {
+        cerr << "Error: Unable to open input file." << endl;
+        return 1;
+    }
+
+    Process* head = nullptr;
+    Process* tail = nullptr;
+    string line;
+//get the burstTime, arrivalTime and Priority from the input file
+    while (getline(inputFile, line)) {
+        stringstream ss(line);
+        int burstTime, arrivalTime, priority;
+        char colon;
+
+        ss >> burstTime >> colon >> arrivalTime >> colon >> priority;
+        // int initialBurstTime = burstTime;
+
+       // addProcess1( burstTime, arrivalTime, priority,initialBurstTime,0,0);
+
+        addProcess(head, tail, burstTime, arrivalTime, priority);
+    }
+
+    inputFile.close();
+           firstcomefirstserve(head);
+           while (head != nullptr) {
+    Process* temp = head;
+    head = head->next;
+    delete temp;
+}
         }
         else if(subOption1==2){
+            
              
+     ifstream inputFile("input.txt");
+    if (inputFile.fail()) {
+        cerr << "Error: Unable to open input file." << endl;
+        return 1;
+    }
+
+    Process* head = nullptr;
+    Process* tail = nullptr;
+    string line;
+//get the burstTime, arrivalTime and Priority from the input file
+    while (getline(inputFile, line)) {
+        stringstream ss(line);
+        int burstTime, arrivalTime, priority;
+        char colon;
+
+        ss >> burstTime >> colon >> arrivalTime >> colon >> priority;
+        // int initialBurstTime = burstTime;
+
+       // addProcess1( burstTime, arrivalTime, priority,initialBurstTime,0,0);
+
+        addProcess(head, tail, burstTime, arrivalTime, priority);
+    }
+
+    inputFile.close();
             firstcomefirstserve(head);
+            while (head != nullptr) {
+    Process* temp = head;
+    head = head->next;
+    delete temp;
+}
+
         } 
         else if(subOption1==3){
 
-                shortestJobFirstNonPreemptive(head);
+         
+     ifstream inputFile("input.txt");
+    if (inputFile.fail()) {
+        cerr << "Error: Unable to open input file." << endl;
+        return 1;
+    }
+
+    Process* head = nullptr;
+    Process* tail = nullptr;
+    string line;
+//get the burstTime, arrivalTime and Priority from the input file
+    while (getline(inputFile, line)) {
+        stringstream ss(line);
+        int burstTime, arrivalTime, priority;
+        char colon;
+
+        ss >> burstTime >> colon >> arrivalTime >> colon >> priority;
+        // int initialBurstTime = burstTime;
+
+       // addProcess1( burstTime, arrivalTime, priority,initialBurstTime,0,0);
+
+        addProcess(head, tail, burstTime, arrivalTime, priority);
+    }
+
+    inputFile.close();
+               shortestJobFirstNonPreemptive(head);
+               while (head != nullptr) {
+    Process* temp = head;
+    head = head->next;
+    delete temp;
+}
                
 
         }
         else if(subOption1==4){
+            fstream inputFile("input.txt");
+    if (inputFile.fail()) {
+        cerr << "Error: Unable to open input file." << endl;
+        return 1;
+    }
+
+    Process* head = nullptr;
+    Process* tail = nullptr;
+    string line;
+//get the burstTime, arrivalTime and Priority from the input file
+    while (getline(inputFile, line)) {
+        stringstream ss(line);
+        int burstTime, arrivalTime, priority;
+        char colon;
+
+        ss >> burstTime >> colon >> arrivalTime >> colon >> priority;
+        // int initialBurstTime = burstTime;
+
+       // addProcess1( burstTime, arrivalTime, priority,initialBurstTime,0,0);
+
+        addProcess(head, tail, burstTime, arrivalTime, priority);
+    }
+
+    inputFile.close();
             prioritySchedulingNonPreemptive(head);
+            while (head != nullptr) {
+    Process* temp = head;
+    head = head->next;
+    delete temp;
+}
         }
        
 
@@ -567,13 +797,103 @@ int main()
         cout << "Choose your Sub Option" << endl;
         cin >> subOption2;
         if(subOption2==1){
+
+            ifstream inputFile("input.txt");
+    if (inputFile.fail()) {
+        cerr << "Error: Unable to open input file." << endl;
+        return 1;
+    }
+
+    Process* head = nullptr;
+    Process* tail = nullptr;
+    string line;
+//get the burstTime, arrivalTime and Priority from the input file
+    while (getline(inputFile, line)) {
+        stringstream ss(line);
+        int burstTime, arrivalTime, priority;
+        char colon;
+
+        ss >> burstTime >> colon >> arrivalTime >> colon >> priority;
+        // int initialBurstTime = burstTime;
+
+       // addProcess1( burstTime, arrivalTime, priority,initialBurstTime,0,0);
+
+        addProcess(head, tail, burstTime, arrivalTime, priority);
+    }
+
+    inputFile.close();
             shortestJobFirstPreemptive(head);
+            while (head != nullptr) {
+    Process* temp = head;
+    head = head->next;
+    delete temp;
+}
         }
         else if(subOption2==2){
+
+            ifstream inputFile("input.txt");
+    if (inputFile.fail()) {
+        cerr << "Error: Unable to open input file." << endl;
+        return 1;
+    }
+
+    Process* head = nullptr;
+    Process* tail = nullptr;
+    string line;
+//get the burstTime, arrivalTime and Priority from the input file
+    while (getline(inputFile, line)) {
+        stringstream ss(line);
+        int burstTime, arrivalTime, priority;
+        char colon;
+
+        ss >> burstTime >> colon >> arrivalTime >> colon >> priority;
+        // int initialBurstTime = burstTime;
+
+       // addProcess1( burstTime, arrivalTime, priority,initialBurstTime,0,0);
+
+        addProcess(head, tail, burstTime, arrivalTime, priority);
+    }
+
+    inputFile.close();
           prioritySchedulingPreemptive(head);
+          while (head != nullptr) {
+    Process* temp = head;
+    head = head->next;
+    delete temp;
+}
         }
         else if(subOption2==3){
-            roundRobinScheduling(head);
+            ifstream inputFile("input.txt");
+    if (inputFile.fail()) {
+        cerr << "Error: Unable to open input file." << endl;
+        return 1;
+    }
+
+    Process* head = nullptr;
+    Process* tail = nullptr;
+    string line;
+//get the burstTime, arrivalTime and Priority from the input file
+    while (getline(inputFile, line)) {
+        stringstream ss(line);
+        int burstTime, arrivalTime, priority;
+        char colon;
+
+        ss >> burstTime >> colon >> arrivalTime >> colon >> priority;
+         int initialBurstTime = burstTime;
+
+       addProcess1( burstTime, arrivalTime, priority,initialBurstTime,0,0);
+
+       // addProcess(head, tail, burstTime, arrivalTime, priority);
+    }
+
+    inputFile.close();
+           
+           roundRobinScheduling(head);
+           while (head != nullptr) {
+    Process* temp = head;
+    head = head->next;
+    delete temp;
+}
         }
         break;
 
@@ -592,18 +912,13 @@ int main()
     }
  // Cleanup: free allocated memory
     // Cleanup: free allocated memory
-while (head != nullptr) {
+/*while (head != nullptr) {
     Process* temp = head;
     head = head->next;
     delete temp;
-}
+}*/
 
-// Add this additional cleanup loop
-while (front != nullptr) {
-    Process* temp = front;
-    front = front->next;
-    delete temp;
-}
+
 
     return 0;
 }
