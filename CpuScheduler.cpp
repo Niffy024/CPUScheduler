@@ -357,8 +357,9 @@ void roundRobinScheduling(Process* head) {
     int quantum=2;
     
     ofstream outFile("out.txt");
+   
 
-    cout << "Scheduling Method: Round Robin" << endl;
+    cout<< "Scheduling Method: Round Robin" << endl;
     cout << "Quantum: " << quantum  << endl;
     cout << "Process Waiting times:" << endl;
 
@@ -405,7 +406,9 @@ if (processQueue.front!= nullptr) {
              currentProcess->waitingTime=currentProcess->turnAroundTime- currentProcess->initialBurstTime;
         // Process is completed
        // cout<<"current time before completion:"<<currentTime;
-        cout << "Process " << currentProcess->processID << ": " << currentProcess->waitingTime << "ms" << endl;
+        
+        
+       cout << "Process " << currentProcess->processID << ": " << currentProcess->waitingTime << "ms" << endl;
         outFile << "Process " << currentProcess->processID << ": " << currentProcess->waitingTime << "ms" << endl;
 
         totalWaitingTime += currentProcess->waitingTime;
@@ -423,13 +426,12 @@ if (processQueue.front!= nullptr) {
 }
 
 
-    if (processCount > 0) {
+   
         cout << "Average Waiting Time: " << totalWaitingTime / processCount << "ms" << endl;
         outFile << "Average Waiting Time: " << totalWaitingTime / processCount << "ms" << endl;
-    } else {
-        cout << "No processes executed." << endl;
-        outFile << "No processes executed." << endl;
-    }
+    
+
+    
 
     outFile.close();
 }
