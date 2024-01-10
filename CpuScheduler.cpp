@@ -595,14 +595,33 @@ void shortestJobFirstPreemptive() {
     outFile.close();
 }
 // Priority Scheduling (Preemptive)
-void prioritySchedulingPreemptive(Process *head)
-{
-    Process *current = head;
+Process* findHighestPriority1(int currentTime) {
+    Process* highestPriority = nullptr;
+    QueueNode* current = processQueue.front;
+
+    while (current != nullptr) {
+        Process* currentProcess = current->data;
+
+        if (currentProcess->arrivalTime <= currentTime &&
+            (highestPriority == nullptr || currentProcess->priority < highestPriority->priority)) {
+            highestPriority = currentProcess;
+        }
+
+        current = current->next;
+    }
+
+    return highestPriority;
+}
+
+void prioritySchedulingPreemptive() {
     int currentTime = 0;
     float totalWaitingTime = 0;
     int processCount = 0;
     int count = 1;
+    int QUANTUM = 1;
     ofstream outFile("out.txt");
+    // Array to store waiting times
+    int* waitingTimesArray = new int[count];
 
     cout << "Scheduling Method: Priority Scheduling (Preemptive)" << endl;
     cout << "Process Waiting times:" << endl;
@@ -610,63 +629,56 @@ void prioritySchedulingPreemptive(Process *head)
     outFile << "Scheduling Method: Priority Scheduling (Preemptive)" << endl;
     outFile << "Process Waiting times:" << endl;
 
-    while (current != nullptr)
-    {
-        // Find the process with the highest priority
-        Process *highestPriority = nullptr;
-        Process *temp = current;
+    while (processQueue.front != nullptr) {
+        Process* highestPriority = findHighestPriority1(currentTime);
 
-        while (temp != nullptr && temp->arrivalTime <= currentTime)
-        {
-            if (highestPriority == nullptr || temp->priority < highestPriority->priority)
-            {
-                highestPriority = temp;
-            }
-            temp = temp->next;
-        }
-
-        if (highestPriority != nullptr)
-        {
-            // Execute the process for a quantum or until it completes
+        if (highestPriority != nullptr) {
             int remainingTime = min(QUANTUM, highestPriority->burstTime);
             highestPriority->burstTime -= remainingTime;
 
-            // Calculate waiting time
             highestPriority->waitingTime = currentTime - highestPriority->arrivalTime;
             currentTime += remainingTime;
 
-            cout << "Process " << count << ": " << highestPriority->waitingTime << "ms" << endl;
-            outFile << "Process " << count << ": " << highestPriority->waitingTime << "ms" << endl;
+            if (highestPriority->burstTime <= 0) {
+                highestPriority->completionTime = currentTime;
+                highestPriority->turnAroundTime = highestPriority->completionTime - highestPriority->arrivalTime;
+                highestPriority->waitingTime = highestPriority->turnAroundTime - highestPriority->initialBurstTime;
+                // Store waiting time in the array
+                waitingTimesArray[highestPriority->processID - 1] = highestPriority->waitingTime;
 
-            totalWaitingTime += highestPriority->waitingTime;
-            processCount++;
-            count++;
+               // cout << "Process " << highestPriority->processID << ": " << highestPriority->waitingTime << "ms" << endl;
+                //outFile << "Process " << highestPriority->processID << ": " << highestPriority->waitingTime << "ms" << endl;
 
-            // Move to the next process
-            current = (highestPriority->burstTime > 0) ? current : current->next;
+                totalWaitingTime += highestPriority->waitingTime;
+                processCount++;
+                count++;
 
-            // Remove the executed process from the list
-            if (highestPriority->burstTime <= 0)
-            {
-                delete highestPriority;
+                // Remove the executed process from the queue
+                dequeue(processQueue, highestPriority);
             }
-        }
-        else
-        {
+        } else {
             currentTime++;
         }
     }
 
-    if (processCount > 0)
-    {
+    // Display process waiting times in order
+    cout << "Process Waiting times:" << endl;
+    outFile << "Process Waiting times:" << endl;
+    for (int i = 0; i < processCount; i++) {
+        cout << "Process " << (i + 1) << ": " << waitingTimesArray[i] << "ms" << endl;
+        outFile << "Process " << (i + 1) << ": " << waitingTimesArray[i] << "ms" << endl;
+    }
+
+    if (processCount > 0) {
         cout << "Average Waiting Time: " << totalWaitingTime / processCount << "ms" << endl;
         outFile << "Average Waiting Time: " << totalWaitingTime / processCount << "ms" << endl;
-    }
-    else
-    {
+    } else {
         cout << "No processes executed." << endl;
         outFile << "No processes executed." << endl;
     }
+
+    // Clean up memory
+    delete[] waitingTimesArray;
 
     outFile.close();
 }
@@ -947,15 +959,15 @@ int main()
                 char colon;
 
                 ss >> burstTime >> colon >> arrivalTime >> colon >> priority;
-                // int initialBurstTime = burstTime;
+                 int initialBurstTime = burstTime;
 
-                // addProcess1( burstTime, arrivalTime, priority,initialBurstTime,0,0);
+                 addProcess1( burstTime, arrivalTime, priority,initialBurstTime,0,0);
 
-                addProcess(head, tail, burstTime, arrivalTime, priority);
+               // addProcess(head, tail, burstTime, arrivalTime, priority);
             }
 
             inputFile.close();
-            prioritySchedulingPreemptive(head);
+            prioritySchedulingPreemptive();
             while (head != nullptr)
             {
                 Process *temp = head;
