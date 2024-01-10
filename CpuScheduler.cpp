@@ -234,13 +234,14 @@ Process* dequeue(Process*& front, Process*& rear) {
 }
 
 // Round Robin Scheduling
-void roundRobinScheduling(Process* head, int quantum) {
+void roundRobinScheduling(Process* head) {
    
     Process* current = head;
     int currentTime = 0;
     float totalWaitingTime = 0;
     int processCount = 0;
     int count = 1;
+    int quantum=2;
     ofstream outFile("out.txt");
 
     cout << "Scheduling Method: Round Robin" << endl;
@@ -504,7 +505,6 @@ int main()
         cout << "-----------------2. First Come First Serve Scheduling-----------------------------" << endl;
         cout << "-----------------3. Shortest Job First Scheduling(Non Preemptive)------------------" << endl;
         cout << "-----------------4. Priority Scheduling(Non Preemptive)----------------------------" << endl;
-        cout << "-----------------5. Round Robin Scheduling--------------------------" << endl;
         cout << "Choose your Sub Option" << endl;
         cin >> subOption1;
         if(subOption1==1){
@@ -524,12 +524,6 @@ int main()
         else if(subOption1==4){
             prioritySchedulingNonPreemptive(head);
         }
-        else if (subOption1==5){
-            int quantum;
-                cout << "Enter Quantum: ";
-                cin >> quantum;
-                roundRobinScheduling(head, quantum);
-        }
        
 
         break;
@@ -539,6 +533,7 @@ int main()
         int subOption2;
         cout << "--------------------1. Shortest Job First Scheduling(Preemptive)------------------------" << endl;
         cout << "--------------------2. Priority Scheduling(Preemptive)----------------------" << endl;
+        cout << "--------------------3. Round Robin Scheduling(Preemptive)----------------------" << endl;
         cout << "Choose your Sub Option" << endl;
         cin >> subOption2;
         if(subOption2==1){
@@ -546,6 +541,9 @@ int main()
         }
         else if(subOption2==2){
           prioritySchedulingPreemptive(head);
+        }
+        else if(subOption2==3){
+            roundRobinScheduling(head);
         }
         break;
 
