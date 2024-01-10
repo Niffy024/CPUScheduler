@@ -161,43 +161,51 @@ void shortestJobFirstNonPreemptive(Process*& head) {
 
 
 // prioroty scheduling (non preemptive)
+Process* findHighestPriority(Process* head, int currentTime) {
+    Process* highestPriority = nullptr;
+    Process* temp = head;
+
+    while (temp != nullptr && temp->arrivalTime <= currentTime) {
+        if (highestPriority == nullptr || temp->priority < highestPriority->priority) {
+            highestPriority = temp;
+        }
+        temp = temp->next;
+    }
+
+    return highestPriority;
+}
+
+// Function to schedule processes using Priority Scheduling (Non Preemptive) algorithm
 void prioritySchedulingNonPreemptive(Process* &head) {
     Process* current = head;
     int currentTime = 0;
     float totalWaitingTime = 0;
     int processCount = 0;
-    
-    ofstream outFile("out.txt");
+
+    // Array to store waiting times
+    int* waitingTimesArray = new int[processCount];
 
     cout << "Scheduling Method: Priority Scheduling (Non Preemptive)" << endl;
     cout << "Process Waiting times:" << endl;
 
+    ofstream outFile("out.txt");
     outFile << "Scheduling Method: Priority Scheduling (Non Preemptive)" << endl;
     outFile << "Process Waiting times:" << endl;
 
+    // Loop to calculate waiting times and store them in the array
     while (current != nullptr) {
-        // Find the process with the highest priority
-        Process* highestPriority = nullptr;
-        Process* temp = current;
-
-        while (temp != nullptr && temp->arrivalTime <= currentTime) {
-            if (highestPriority == nullptr || temp->priority < highestPriority->priority) {
-                highestPriority = temp;
-            }
-            temp = temp->next;
-        }
+        Process* highestPriority = findHighestPriority(current, currentTime);
 
         if (highestPriority != nullptr) {
             // Execute the process with the highest priority
             highestPriority->waitingTime = currentTime - highestPriority->arrivalTime;
             currentTime += highestPriority->burstTime;
 
-            cout << "Process " << highestPriority->processID << ": " << highestPriority->waitingTime << "ms" << endl;
-            outFile << "Process " << highestPriority->processID << ": " << highestPriority->waitingTime << "ms" << endl;
+            // Store waiting time in the array
+            waitingTimesArray[highestPriority->processID - 1] = highestPriority->waitingTime;
 
             totalWaitingTime += highestPriority->waitingTime;
             processCount++;
-            
 
             // Remove the executed process from the list
             if (current == highestPriority) {
@@ -221,10 +229,21 @@ void prioritySchedulingNonPreemptive(Process* &head) {
         } else {
             currentTime++;
         }
-    } 
-        cout << "Average Waiting Time: " << totalWaitingTime / processCount << "ms" << endl;
-        outFile << "Average Waiting Time: " << totalWaitingTime / processCount << "ms" << endl;
+    }
 
+    // Display process waiting times in order
+   // cout << "Process Waiting times:" << endl;
+    for (int i = 0; i < processCount; i++) {
+        cout << "Process " << (i + 1) << ": " << waitingTimesArray[i] << "ms" << endl;
+        outFile << "Process " << (i + 1) << ": " << waitingTimesArray[i] << "ms" << endl;
+    }
+
+    // Display average waiting time
+    cout << "Average Waiting Time: " << totalWaitingTime / processCount << "ms" << endl;
+    outFile << "Average Waiting Time: " << totalWaitingTime / processCount << "ms" << endl;
+
+    // Clean up memory
+    delete[] waitingTimesArray;
     outFile.close();
 }
 
