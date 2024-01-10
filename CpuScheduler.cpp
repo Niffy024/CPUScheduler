@@ -95,57 +95,68 @@ void shortestJobFirstNonPreemptive(Process*& head) {
     float totalWaitingTime = 0;
     int processCount = 0;
     int count = 1;
-    ofstream outFile("out.txt");
+     ofstream outFile("out.txt");
 
-    cout << "Scheduling Method: Shortest Job First (Non Preemptive)" << endl;
-    cout << "Process Waiting times:" << endl;
+    // Array to store waiting times
+    int* waitingTimesArray = new int[count];
 
-    outFile << "Scheduling Method: Shortest Job First (Non Preemptive)" << endl;
-    outFile << "Process Waiting times:" << endl;
+    cout << "Scheduling Method: Priority Scheduling (Non Preemptive)" << endl;
+
+    outFile << "Scheduling Method: Priority Scheduling (Non Preemptive)" << endl;
+   
 
     while (current != nullptr) {
-    // Find the process with the shortest burst time
-    Process* shortest = findShortest(current, currentTime);
+        // Find the process with the shortest burst time
+        Process* shortest = findShortest(current, currentTime);
 
-    if (shortest != nullptr) {
-        // Execute the shortest process
-        shortest->waitingTime = currentTime - shortest->arrivalTime;
-        currentTime += shortest->burstTime;
-        cout << "Process " << shortest->processID << ": " << shortest->waitingTime << "ms" << endl;
-        outFile << "Process " << shortest->processID << ": " << shortest->waitingTime << "ms" << endl;
+        if (shortest != nullptr) {
+            // Execute the shortest process
+            shortest->waitingTime = currentTime - shortest->arrivalTime;
+            currentTime += shortest->burstTime;
 
-        totalWaitingTime += shortest->waitingTime;
-        processCount++;
-        count++;
-       
+            // Store waiting time in the array
+            waitingTimesArray[shortest->processID - 1] = shortest->waitingTime;
 
-        // Remove the executed process from the list
-        if (current == shortest) {
-            head = current->next;
-        } else {
-            Process* temp = head;
-            while (temp->next != shortest) {
-                temp = temp->next;
+            totalWaitingTime += shortest->waitingTime;
+            processCount++;
+            count++;
+
+            // Remove the executed process from the list
+            if (current == shortest) {
+                head = current->next;
+            } else {
+                Process* temp = head;
+                while (temp->next != shortest) {
+                    temp = temp->next;
+                }
+                temp->next = shortest->next;
             }
-            temp->next = shortest->next;
+
+            delete shortest;
+        } else {
+            currentTime++;
         }
 
-        delete shortest; 
-    } else {
-        currentTime++;
+        // Update the current pointer to head
+        current = head;
     }
 
-    // Update the current pointer to head
-        current = head;
-          
-}  
+    // Display process waiting times in order
+    cout << "Process Waiting times:" << endl;
+     outFile << "Process Waiting times:" << endl;
+    for (int i = 0; i < processCount; i++) {
+        cout << "Process " << (i + 1) << ": " << waitingTimesArray[i] << "ms" << endl;
+         outFile << "Process " << (i + 1) << ": " << waitingTimesArray[i] << "ms" << endl;
+    }
 
     // Calculate and display average waiting time
-   
-        cout << "Average Waiting Time: " << totalWaitingTime / processCount << "ms" << endl;
-        outFile << "Average Waiting Time: " << totalWaitingTime / processCount << "ms" << endl;
-    outFile.close();
+    cout << "Average Waiting Time: " << totalWaitingTime / processCount << "ms" << endl;
+     outFile << "Average Waiting Time: " << totalWaitingTime / processCount << "ms" << endl;
+
+    // Clean up memory
+    delete[] waitingTimesArray;
 }
+
 
 
 
