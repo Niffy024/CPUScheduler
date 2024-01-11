@@ -1,0 +1,9 @@
+Scheduling Method: Round Robin Scheduling
+Quantum: 2
+Process Waiting times:
+Process 2: 9ms
+Process 3: 11ms
+Process 4: 11ms
+Process 5: 12ms
+Process 1: 14ms
+Average Waiting Time: 11.4ms
