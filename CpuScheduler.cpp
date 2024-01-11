@@ -107,7 +107,7 @@ void shortestJobFirstNonPreemptive(Process *&head)
 
     cout << "Scheduling Method: Shortest Job First Scheduling (Non Preemptive)" << endl;
 
-    outFile << "Scheduling Method: Priority Scheduling (Non Preemptive)" << endl;
+    outFile << "Scheduling Method: Shortest Job First Scheduling (Non Preemptive)" << endl;
 
     while (current != nullptr)
     {
@@ -553,8 +553,7 @@ void shortestJobFirstPreemptive() {
         }
     }
     
-    cout << "Process Waiting times:" << endl;
-    outFile << "Process Waiting times:" << endl;
+   
     for (int i = 0; i < processCount; i++)
     {
         cout << "Process " << (i + 1) << ": " << waitingTimesArray[i] << "ms" << endl;
@@ -638,8 +637,7 @@ void prioritySchedulingPreemptive() {
     }
 
    
-    cout << "Process Waiting times:" << endl;
-    outFile << "Process Waiting times:" << endl;
+   
     for (int i = 0; i < processCount; i++) {
         cout << "Process " << (i + 1) << ": " << waitingTimesArray[i] << "ms" << endl;
         outFile << "Process " << (i + 1) << ": " << waitingTimesArray[i] << "ms" << endl;
