@@ -645,6 +645,7 @@ void prioritySchedulingPreemptive() {
 
     
         cout << "Average Waiting Time: " << totalWaitingTime / processCount << "ms" << endl;
+        outFile<<"Average Waiting Time: "<<totalWaitingTime/processCount<<"ms"<<endl;
    
 
    
